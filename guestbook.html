@@ -39,7 +39,7 @@
                 </div>
                 
                 <div class="form-actions">
-                    <button class="btn btn-back" onclick="window.location.href='/secret'">Back</button>
+                    <button class="btn btn-back" onclick="window.location.href='secret.html'">Back</button>
                     <button class="btn btn-publish" onclick="publishMessage()">Publish</button>
                 </div>
             </div>
@@ -99,7 +99,16 @@
                     });
                 })
                 .catch(error => {
-                    console.error('Error loading messages:', error);
+                    console.error('Server not available, loading from localStorage:', error);
+                    // Fallback to localStorage
+                    const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
+                    const container = document.getElementById('backgroundMessages');
+                    container.innerHTML = '';
+                    
+                    messages.forEach((msg, index) => {
+                        const messageElement = createBackgroundMessage(msg, index);
+                        container.appendChild(messageElement);
+                    });
                 });
         }
 
@@ -190,7 +199,7 @@
             
             const cleanHandle = xHandle.startsWith('@') ? xHandle : '@' + xHandle;
             
-            // Send to server
+            // Try to send to server first
             fetch('/api/messages', {
                 method: 'POST',
                 headers: {
@@ -204,7 +213,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert(data.error);
+                    if (data.error === 'User already has a message') {
+                        alert('You have already left your mark! One message per user.');
+                    } else {
+                        alert(data.error);
+                    }
                     return;
                 }
                 
@@ -220,8 +233,37 @@
                 showSuccessMessage();
             })
             .catch(error => {
-                console.error('Error publishing message:', error);
-                alert('Failed to publish message. Please try again.');
+                console.error('Server not available, using localStorage:', error);
+                
+                // Fallback to localStorage
+                const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
+                const existingMessage = messages.find(msg => msg.xHandle.toLowerCase() === cleanHandle.toLowerCase());
+                
+                if (existingMessage) {
+                    alert('You have already left your mark! One message per user.');
+                    return;
+                }
+                
+                const newMessage = {
+                    xHandle: cleanHandle,
+                    message: message,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Save to localStorage
+                messages.unshift(newMessage); // Add to beginning
+                localStorage.setItem('symbioticMessages', JSON.stringify(messages));
+                
+                // Clear form
+                document.getElementById('xHandle').value = '';
+                document.getElementById('message').value = '';
+                document.getElementById('charCount').textContent = '0';
+                
+                // Reload messages
+                loadMessages();
+                
+                // Show success message
+                showSuccessMessage();
             });
         }
 
@@ -250,7 +292,7 @@
                 .then(messages => {
                     if (messages.length > 0) {
                         const latestMessage = messages[0]; // Get the most recent message
-                        const shareText = `Just left my mark on the Symbiotic community! ${latestMessage.message} @symbioticfi @pixnvm symbioticstats.xyz`;
+                        const shareText = `${latestMessage.message} @symbioticfi @pixnvm symbioticstats.xyz`;
                         const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
                         
                         window.open(shareUrl, '_blank');
@@ -258,7 +300,16 @@
                     closeShareModal();
                 })
                 .catch(error => {
-                    console.error('Error loading messages for sharing:', error);
+                    console.error('Server not available, using localStorage for sharing:', error);
+                    // Fallback to localStorage
+                    const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
+                    if (messages.length > 0) {
+                        const latestMessage = messages[0]; // Get the most recent message
+                        const shareText = `${latestMessage.message} @symbioticfi @pixnvm symbioticstats.xyz`;
+                        const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+                        
+                        window.open(shareUrl, '_blank');
+                    }
                     closeShareModal();
                 });
         }
