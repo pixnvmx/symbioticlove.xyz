@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symbiotic Love</title>
+    <link rel="icon" type="image/png" href="logo/logo.png">
+    <link rel="stylesheet" href="styles.css">
+         <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+     <style>
+         @keyframes buttonGlow {
+             0%, 100% { box-shadow: 0 0 30px #c0fd5c; }
+             50% { box-shadow: 0 0 40px #c0fd5c, 0 0 50px #c0fd5c; }
+         }
+         
+         @keyframes buttonGlow {
+             0%, 100% { box-shadow: 0 0 30px #1da1f2; }
+             50% { box-shadow: 0 0 40px #1da1f2, 0 0 50px #1da1f2; }
+         }
+     </style>
+ </head>
+<body>
+    <!-- Logos with Twitter links -->
+    <div class="logo-top-left">
+        <a href="https://x.com/symbioticfi" target="_blank">
+            <img src="logo/logo.png" alt="Logo">
+        </a>
+        <a href="https://x.com/pixnvm" target="_blank">
+            <img src="logo/logo2.png" alt="Logo 2">
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="guestbook-content">
+                         <h1>Share your love</h1>
+             <p class="subtitle">for Symbiotic with the community!</p>
+            
+            <!-- Guestbook Form -->
+            <div class="guestbook-form" id="guestbookForm">
+                <div class="form-group">
+                    <label for="xHandle">Your X Handle:</label>
+                    <input type="text" id="xHandle" name="xHandle" placeholder="@yourusername" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Why do you love Symbiotic?</label>
+                    <textarea id="message" name="message" placeholder="Tell us what makes Symbiotic special to you..." required maxlength="280"></textarea>
+                    <div class="char-count">
+                        <span id="charCount">0</span>/280
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn btn-back" onclick="window.location.href='secret.html'">Back</button>
+                    <button class="btn btn-publish" onclick="publishMessage()">Publish</button>
+                </div>
+            </div>
+            
+                         
+         </div>
+     </div>
+
+     
+        </div>
+    </div>
+
+    
+
+    <script>
+        // Character counter
+        document.getElementById('message').addEventListener('input', function() {
+            const count = this.value.length;
+            document.getElementById('charCount').textContent = count;
+            
+            if (count > 250) {
+                document.getElementById('charCount').style.color = '#ff6b6b';
+            } else if (count > 200) {
+                document.getElementById('charCount').style.color = '#ffaa00';
+            } else {
+                document.getElementById('charCount').style.color = '#c0fd5c';
+            }
+        });
+
+        // Load existing messages
+        function loadMessages() {
+            // Don't show any messages on background
+            const container = document.getElementById('backgroundMessages');
+            container.innerHTML = '';
+        }
+
+
+
+
+
+        // Publish message
+        function publishMessage() {
+            const xHandle = document.getElementById('xHandle').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!xHandle || !message) {
+                alert('Please fill in all fields!');
+                return;
+            }
+            
+            const cleanHandle = xHandle.startsWith('@') ? xHandle : '@' + xHandle;
+            
+            // Save to localStorage (no restrictions)
+            const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
+            const newMessage = {
+                xHandle: cleanHandle,
+                message: message,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Add to beginning
+            messages.unshift(newMessage);
+            localStorage.setItem('symbioticMessages', JSON.stringify(messages));
+            
+            // Clear form
+            document.getElementById('xHandle').value = '';
+            document.getElementById('message').value = '';
+            document.getElementById('charCount').textContent = '0';
+            
+            // Create and show card
+            createShareCard();
+        }
+
+
+
+                 // Create share card
+         function createShareCard() {
+             // Get the latest message from localStorage
+             const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
+             if (messages.length === 0) {
+                 alert('No message to create card for!');
+                 return;
+             }
+             
+             const latestMessage = messages[0]; // Get the most recent message
+             const xHandle = latestMessage.xHandle;
+             const message = latestMessage.message;
+            
+                                                   // Create card HTML
+              const cardHTML = `
+                  <div style="
+                      width: 600px;
+                      height: 400px;
+                      background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+                      border: 2px solid #c0fd5c;
+                      border-radius: 20px;
+                      padding: 40px;
+                      color: white;
+                      font-family: 'ShantellSans', Arial, sans-serif;
+                      position: relative;
+                      overflow: hidden;
+                  ">
+                      <!-- Background stars -->
+                      <div style="
+                          position: absolute;
+                          top: 0;
+                          left: 0;
+                          width: 100%;
+                          height: 100%;
+                          background-image: radial-gradient(2px 2px at 20px 30px, #c0fd5c, transparent),
+                                            radial-gradient(2px 2px at 40px 70px, #ffffff, transparent),
+                                            radial-gradient(1px 1px at 90px 40px, #c0fd5c, transparent),
+                                            radial-gradient(1px 1px at 130px 80px, #ffffff, transparent),
+                                            radial-gradient(2px 2px at 160px 30px, #c0fd5c, transparent);
+                          background-repeat: repeat;
+                          background-size: 200px 100px;
+                          opacity: 0.3;
+                      "></div>
+                      
+                                             <!-- Content -->
+                       <div style="position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column;">
+                                                     <!-- Website name at top center -->
+                           <div style="
+                               display: flex;
+                               justify-content: center;
+                               align-items: center;
+                               margin-bottom: 30px;
+                           ">
+                               <div style="
+                                   font-size: 18px;
+                                   color: #c0fd5c;
+                                   text-shadow: 0 0 10px #c0fd5c;
+                                   font-weight: bold;
+                                   letter-spacing: 1px;
+                               ">symbioticlove.xyz</div>
+                           </div>
+                          
+                          <!-- Text in center -->
+                          <div style="
+                              flex: 1;
+                              display: flex;
+                              justify-content: center;
+                              align-items: center;
+                              font-size: 20px;
+                              line-height: 1.6;
+                              text-align: center;
+                              text-shadow: 0 0 5px rgba(192, 253, 92, 0.3);
+                              padding: 0 20px;
+                          ">${message}</div>
+                          
+                          <!-- Username at bottom right (small) -->
+                          <div style="
+                              position: absolute;
+                              bottom: 20px;
+                              right: 20px;
+                              font-size: 12px;
+                              color: #c0fd5c;
+                              text-shadow: 0 0 5px #c0fd5c;
+                              opacity: 0.8;
+                          ">${xHandle}</div>
+                      </div>
+                  </div>
+              `;
+            
+            // Create modal with card
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: #1a1a1a;
+                    border-radius: 15px;
+                    padding: 30px;
+                    text-align: center;
+                    max-width: 90%;
+                    max-height: 90%;
+                    overflow: auto;
+                ">
+                                         <h2 style="color: #c0fd5c; margin-bottom: 20px; font-family: 'ShantellSans', Arial, sans-serif;">Your card is ready!</h2>
+                    <div id="cardContainer" style="display: flex; justify-content: center; margin-bottom: 20px;">
+                        ${cardHTML}
+                    </div>
+                                         <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                         <button onclick="downloadCard()" style="
+                             font-family: 'ShantellSans', 'Arial', sans-serif;
+                             padding: 12px 25px;
+                             font-size: 1rem;
+                             font-weight: bold;
+                             border: 2px solid #c0fd5c;
+                             border-radius: 10px;
+                             cursor: pointer;
+                             transition: all 0.3s ease;
+                             text-transform: uppercase;
+                             letter-spacing: 1px;
+                             background: rgba(192, 253, 92, 0.1);
+                             color: #c0fd5c;
+                             box-shadow: 0 0 10px rgba(192, 253, 92, 0.3);
+                         ">Download Card</button>
+                                                   <button onclick="shareToX()" style="
+                              font-family: 'ShantellSans', 'Arial', sans-serif;
+                              padding: 12px 25px;
+                              font-size: 1rem;
+                              font-weight: bold;
+                              border: 2px solid #1da1f2;
+                              border-radius: 10px;
+                              cursor: pointer;
+                              transition: all 0.3s ease;
+                              text-transform: uppercase;
+                              letter-spacing: 1px;
+                              background: rgba(29, 161, 242, 0.1);
+                              color: #1da1f2;
+                              box-shadow: 0 0 10px rgba(29, 161, 242, 0.3);
+                          ">Share on X</button>
+                         <button onclick="closeCardModal()" style="
+                             font-family: 'ShantellSans', 'Arial', sans-serif;
+                             padding: 12px 25px;
+                             font-size: 1rem;
+                             font-weight: bold;
+                             border: 2px solid #666;
+                             border-radius: 10px;
+                             cursor: pointer;
+                             transition: all 0.3s ease;
+                             text-transform: uppercase;
+                             letter-spacing: 1px;
+                             background: rgba(102, 102, 102, 0.1);
+                             color: #666;
+                             box-shadow: 0 0 10px rgba(102, 102, 102, 0.3);
+                         ">Close</button>
+                     </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+                 // Download card as image
+         function downloadCard() {
+             const cardContainer = document.getElementById('cardContainer');
+             if (!cardContainer || !cardContainer.firstElementChild) return;
+             
+             // Show loading message
+             const originalText = event.target.textContent;
+             event.target.textContent = 'Generating...';
+             event.target.disabled = true;
+             
+             // Simple render without image processing
+             setTimeout(() => {
+                 html2canvas(cardContainer.firstElementChild, {
+                     useCORS: false,
+                     allowTaint: false,
+                     backgroundColor: null,
+                     scale: 2,
+                     logging: false,
+                     width: 600,
+                     height: 400
+                 }).then(canvas => {
+                     // Create download link
+                     const link = document.createElement('a');
+                     link.download = 'symbiotic-love-card.png';
+                     link.href = canvas.toDataURL('image/png');
+                     
+                     // Trigger download
+                     document.body.appendChild(link);
+                     link.click();
+                     document.body.removeChild(link);
+                     
+                     // Restore button
+                     event.target.textContent = originalText;
+                     event.target.disabled = false;
+                 }).catch(error => {
+                     console.error('Error downloading card:', error);
+                     // Don't show alert, just restore button
+                     event.target.textContent = originalText;
+                     event.target.disabled = false;
+                 });
+             }, 500);
+         }
+
+                 // Share to X
+         function shareToX() {
+             // Get the latest message from localStorage
+             const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
+             if (messages.length > 0) {
+                 const latestMessage = messages[0]; // Get the most recent message
+                 const shareText = `${latestMessage.message} @symbioticfi @pixnvm symbioticstats.xyz`;
+                 const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+                 
+                 window.open(shareUrl, '_blank');
+             }
+         }
+
+        // Close card modal
+        function closeCardModal() {
+            const modal = document.querySelector('div[style*="position: fixed"]');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+
+
+        // Load messages on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMessages();
+        });
+    </script>
+</body>
+</html>
