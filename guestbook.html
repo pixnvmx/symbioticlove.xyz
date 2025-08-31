@@ -39,7 +39,7 @@
                 </div>
                 
                 <div class="form-actions">
-                    <button class="btn btn-back" onclick="window.location.href='secret.html'">Back</button>
+                    <button class="btn btn-back" onclick="window.location.href='/secret'">Back</button>
                     <button class="btn btn-publish" onclick="publishMessage()">Publish</button>
                 </div>
             </div>
@@ -87,15 +87,20 @@
 
         // Load existing messages
         function loadMessages() {
-            const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
-            const container = document.getElementById('backgroundMessages');
-            
-            container.innerHTML = '';
-            
-            messages.forEach((msg, index) => {
-                const messageElement = createBackgroundMessage(msg, index);
-                container.appendChild(messageElement);
-            });
+            fetch('/api/messages')
+                .then(response => response.json())
+                .then(messages => {
+                    const container = document.getElementById('backgroundMessages');
+                    container.innerHTML = '';
+                    
+                    messages.forEach((msg, index) => {
+                        const messageElement = createBackgroundMessage(msg, index);
+                        container.appendChild(messageElement);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading messages:', error);
+                });
         }
 
         // Create background message element
@@ -185,35 +190,39 @@
             
             const cleanHandle = xHandle.startsWith('@') ? xHandle : '@' + xHandle;
             
-            // Check if user already has a message
-            const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
-            const existingMessage = messages.find(msg => msg.xHandle.toLowerCase() === cleanHandle.toLowerCase());
-            
-            if (existingMessage) {
-                alert('You have already left your mark! One message per user.');
-                return;
-            }
-            
-            const newMessage = {
-                xHandle: cleanHandle,
-                message: message,
-                timestamp: new Date().toISOString()
-            };
-            
-            // Save to localStorage
-            messages.unshift(newMessage); // Add to beginning
-            localStorage.setItem('symbioticMessages', JSON.stringify(messages));
-            
-            // Clear form
-            document.getElementById('xHandle').value = '';
-            document.getElementById('message').value = '';
-            document.getElementById('charCount').textContent = '0';
-            
-            // Reload messages
-            loadMessages();
-            
-            // Show success message
-            showSuccessMessage();
+            // Send to server
+            fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    xHandle: cleanHandle,
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                // Clear form
+                document.getElementById('xHandle').value = '';
+                document.getElementById('message').value = '';
+                document.getElementById('charCount').textContent = '0';
+                
+                // Reload messages
+                loadMessages();
+                
+                // Show success message
+                showSuccessMessage();
+            })
+            .catch(error => {
+                console.error('Error publishing message:', error);
+                alert('Failed to publish message. Please try again.');
+            });
         }
 
         // Show success message with share option
@@ -236,15 +245,22 @@
 
         // Share to X after publishing
         function shareToXNow() {
-            const messages = JSON.parse(localStorage.getItem('symbioticMessages') || '[]');
-            if (messages.length > 0) {
-                const latestMessage = messages[0]; // Get the most recent message
-                const shareText = `Just left my mark on the Symbiotic community! ${latestMessage.message} @symbioticfi @pixnvm symbioticstats.xyz`;
-                const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-                
-                window.open(shareUrl, '_blank');
-            }
-            closeShareModal();
+            fetch('/api/messages')
+                .then(response => response.json())
+                .then(messages => {
+                    if (messages.length > 0) {
+                        const latestMessage = messages[0]; // Get the most recent message
+                        const shareText = `Just left my mark on the Symbiotic community! ${latestMessage.message} @symbioticfi @pixnvm symbioticstats.xyz`;
+                        const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+                        
+                        window.open(shareUrl, '_blank');
+                    }
+                    closeShareModal();
+                })
+                .catch(error => {
+                    console.error('Error loading messages for sharing:', error);
+                    closeShareModal();
+                });
         }
 
         // Close share modal
